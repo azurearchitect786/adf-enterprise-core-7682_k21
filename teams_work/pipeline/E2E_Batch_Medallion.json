@@ -215,10 +215,10 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"notebookPath": "/Users/ds01_adam@aimlesss.com/Analytics_Gold"
+					"notebookPath": "/Users/ds01_adam@aimlesss.com/Gold_Analytics"
 				},
 				"linkedServiceName": {
-					"referenceName": "LS_AzureDatabricks",
+					"referenceName": "K21Databricks",
 					"type": "LinkedServiceReference"
 				}
 			}
