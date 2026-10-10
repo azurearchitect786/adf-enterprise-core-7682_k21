@@ -1,0 +1,81 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-enterprise-core-7682"
+		},
+		"LS_CICD_accountKey": {
+			"value": ""
+		},
+		"LS_CICDel_accountKey": {
+			"value": ""
+		},
+		"LS_Cosmos_K21_connectionString": {
+			"value": ""
+		},
+		"LS_ADLS_Gen2_Raw_properties_typeProperties_url": {
+			"value": "https://sadlsextng7682.dfs.core.windows.net/"
+		},
+		"LS_ADLS_Parameterized_properties_typeProperties_url": {
+			"value": "@{concat('https://',linkedService().adls_name,'.dfs.core.windows.net/')}"
+		},
+		"LS_AKV_MI_properties_typeProperties_baseUrl": {
+			"value": "https://kv-adf-etnd-7682.vault.azure.net/"
+		},
+		"LS_AzureDatabricks_properties_typeProperties_existingClusterId": {
+			"value": "1007-065651-zfazfxy4"
+		},
+		"LS_AzureSQLDW_Sink_properties_typeProperties_server": {
+			"value": "sql-server-etnd-7682.database.windows.net"
+		},
+		"LS_AzureSQLDW_Sink_properties_typeProperties_database": {
+			"value": "EnterpriseWarehouse"
+		},
+		"LS_AzureSQL_Metademo_properties_typeProperties_server": {
+			"value": "sql-server-etnd-7682.database.windows.net"
+		},
+		"LS_AzureSQL_Metademo_properties_typeProperties_database": {
+			"value": "sqldb-enterprise-sink"
+		},
+		"LS_AzureSQL_Parameterized_properties_typeProperties_server": {
+			"value": "@{concat(linkedService().ServerName,'.database.windows.net')}"
+		},
+		"LS_AzureSQL_Parameterized_properties_typeProperties_database": {
+			"value": "@{linkedService().DBName}"
+		},
+		"LS_AzureSQL_SHIR_properties_typeProperties_server": {
+			"value": "shir-demo-server.database.windows.net"
+		},
+		"LS_AzureSQL_SHIR_properties_typeProperties_database": {
+			"value": "shir-demo-db"
+		},
+		"LS_AzureSQL_SHIR_properties_typeProperties_userName": {
+			"value": "sqladmin"
+		},
+		"LS_AzureSQL_Sink_properties_typeProperties_server": {
+			"value": "sql-server-etnd-7682.database.windows.net"
+		},
+		"LS_AzureSQL_Sink_properties_typeProperties_database": {
+			"value": "sqldb-enterprise-sink"
+		},
+		"LS_CICD_properties_typeProperties_url": {
+			"value": "https://sadlsextng7682.dfs.core.windows.net/"
+		},
+		"LS_CICDel_properties_typeProperties_url": {
+			"value": "https://sadlsextng7682.dfs.core.windows.net/"
+		},
+		"LS_CosmosDb_Parameterized_properties_typeProperties_accountEndpoint": {
+			"value": "@{concat('https://',linkedService().CosmosAccountName,'.documents.azure.com:443/')}"
+		},
+		"LS_CosmosDb_Parameterized_properties_typeProperties_database": {
+			"value": "@{linkedService().CosmosDBName}"
+		},
+		"LS_Cosmos_Dynamic_properties_typeProperties_accountEndpoint": {
+			"value": "https://cosmosadflabs.documents.azure.com:443/"
+		},
+		"LS_Cosmos_Dynamic_properties_typeProperties_database": {
+			"value": "support_db"
+		}
+	}
+}

@@ -1,0 +1,270 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-enterprise-core-7682"
+		},
+		"LS_CICD_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_CICD'"
+		},
+		"LS_CICDel_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LS_CICDel'"
+		},
+		"LS_Cosmos_K21_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'LS_Cosmos_K21'"
+		},
+		"LS_ADLS_Gen2_Raw_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sadlsextng7682.dfs.core.windows.net/"
+		},
+		"LS_ADLS_Parameterized_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{concat('https://',linkedService().adls_name,'.dfs.core.windows.net/')}"
+		},
+		"LS_AKV_MI_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kv-adf-etnd-7682.vault.azure.net/"
+		},
+		"LS_AzureDatabricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1007-065651-zfazfxy4"
+		},
+		"LS_AzureSQLDW_Sink_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-server-etnd-7682.database.windows.net"
+		},
+		"LS_AzureSQLDW_Sink_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "EnterpriseWarehouse"
+		},
+		"LS_AzureSQL_Metademo_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-server-etnd-7682.database.windows.net"
+		},
+		"LS_AzureSQL_Metademo_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sqldb-enterprise-sink"
+		},
+		"LS_AzureSQL_Parameterized_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "@{concat(linkedService().ServerName,'.database.windows.net')}"
+		},
+		"LS_AzureSQL_Parameterized_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().DBName}"
+		},
+		"LS_AzureSQL_SHIR_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "shir-demo-server.database.windows.net"
+		},
+		"LS_AzureSQL_SHIR_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "shir-demo-db"
+		},
+		"LS_AzureSQL_SHIR_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
+		},
+		"LS_AzureSQL_Sink_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-server-etnd-7682.database.windows.net"
+		},
+		"LS_AzureSQL_Sink_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "sqldb-enterprise-sink"
+		},
+		"LS_CICD_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sadlsextng7682.dfs.core.windows.net/"
+		},
+		"LS_CICDel_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://sadlsextng7682.dfs.core.windows.net/"
+		},
+		"LS_CosmosDb_Parameterized_properties_typeProperties_accountEndpoint": {
+			"type": "string",
+			"defaultValue": "@{concat('https://',linkedService().CosmosAccountName,'.documents.azure.com:443/')}"
+		},
+		"LS_CosmosDb_Parameterized_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "@{linkedService().CosmosDBName}"
+		},
+		"LS_Cosmos_Dynamic_properties_typeProperties_accountEndpoint": {
+			"type": "string",
+			"defaultValue": "https://cosmosadflabs.documents.azure.com:443/"
+		},
+		"LS_Cosmos_Dynamic_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "support_db"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "adf-enterprise-core-7682_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"LS_CICD_accountKey": {
+						"value": "[parameters('LS_CICD_accountKey')]"
+					},
+					"LS_CICDel_accountKey": {
+						"value": "[parameters('LS_CICDel_accountKey')]"
+					},
+					"LS_Cosmos_K21_connectionString": {
+						"value": "[parameters('LS_Cosmos_K21_connectionString')]"
+					},
+					"LS_ADLS_Gen2_Raw_properties_typeProperties_url": {
+						"value": "[parameters('LS_ADLS_Gen2_Raw_properties_typeProperties_url')]"
+					},
+					"LS_ADLS_Parameterized_properties_typeProperties_url": {
+						"value": "[parameters('LS_ADLS_Parameterized_properties_typeProperties_url')]"
+					},
+					"LS_AKV_MI_properties_typeProperties_baseUrl": {
+						"value": "[parameters('LS_AKV_MI_properties_typeProperties_baseUrl')]"
+					},
+					"LS_AzureSQLDW_Sink_properties_typeProperties_server": {
+						"value": "[parameters('LS_AzureSQLDW_Sink_properties_typeProperties_server')]"
+					},
+					"LS_AzureSQLDW_Sink_properties_typeProperties_database": {
+						"value": "[parameters('LS_AzureSQLDW_Sink_properties_typeProperties_database')]"
+					},
+					"LS_AzureSQL_Metademo_properties_typeProperties_server": {
+						"value": "[parameters('LS_AzureSQL_Metademo_properties_typeProperties_server')]"
+					},
+					"LS_AzureSQL_Metademo_properties_typeProperties_database": {
+						"value": "[parameters('LS_AzureSQL_Metademo_properties_typeProperties_database')]"
+					},
+					"LS_AzureSQL_Parameterized_properties_typeProperties_server": {
+						"value": "[parameters('LS_AzureSQL_Parameterized_properties_typeProperties_server')]"
+					},
+					"LS_AzureSQL_Parameterized_properties_typeProperties_database": {
+						"value": "[parameters('LS_AzureSQL_Parameterized_properties_typeProperties_database')]"
+					},
+					"LS_AzureSQL_Sink_properties_typeProperties_server": {
+						"value": "[parameters('LS_AzureSQL_Sink_properties_typeProperties_server')]"
+					},
+					"LS_AzureSQL_Sink_properties_typeProperties_database": {
+						"value": "[parameters('LS_AzureSQL_Sink_properties_typeProperties_database')]"
+					},
+					"LS_CICD_properties_typeProperties_url": {
+						"value": "[parameters('LS_CICD_properties_typeProperties_url')]"
+					},
+					"LS_CICDel_properties_typeProperties_url": {
+						"value": "[parameters('LS_CICDel_properties_typeProperties_url')]"
+					},
+					"LS_CosmosDb_Parameterized_properties_typeProperties_accountEndpoint": {
+						"value": "[parameters('LS_CosmosDb_Parameterized_properties_typeProperties_accountEndpoint')]"
+					},
+					"LS_CosmosDb_Parameterized_properties_typeProperties_database": {
+						"value": "[parameters('LS_CosmosDb_Parameterized_properties_typeProperties_database')]"
+					},
+					"LS_Cosmos_Dynamic_properties_typeProperties_accountEndpoint": {
+						"value": "[parameters('LS_Cosmos_Dynamic_properties_typeProperties_accountEndpoint')]"
+					},
+					"LS_Cosmos_Dynamic_properties_typeProperties_database": {
+						"value": "[parameters('LS_Cosmos_Dynamic_properties_typeProperties_database')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "adf-enterprise-core-7682_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-enterprise-core-7682_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "adf-enterprise-core-7682_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"LS_AzureDatabricks_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('LS_AzureDatabricks_properties_typeProperties_existingClusterId')]"
+					},
+					"LS_AzureSQL_SHIR_properties_typeProperties_server": {
+						"value": "[parameters('LS_AzureSQL_SHIR_properties_typeProperties_server')]"
+					},
+					"LS_AzureSQL_SHIR_properties_typeProperties_database": {
+						"value": "[parameters('LS_AzureSQL_SHIR_properties_typeProperties_database')]"
+					},
+					"LS_AzureSQL_SHIR_properties_typeProperties_userName": {
+						"value": "[parameters('LS_AzureSQL_SHIR_properties_typeProperties_userName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-enterprise-core-7682_ArmTemplate_1')]"
+			]
+		},
+		{
+			"name": "adf-enterprise-core-7682_ArmTemplate_3",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_3.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-enterprise-core-7682_ArmTemplate_2')]"
+			]
+		}
+	]
+}
