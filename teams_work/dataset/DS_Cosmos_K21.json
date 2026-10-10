@@ -1,0 +1,31 @@
+{
+	"name": "DS_Cosmos_K21",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_Cosmos_K21",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "CosmosDbSqlApiCollection",
+		"schema": {
+			"type": "object",
+			"properties": {
+				"OrderID": {
+					"type": "string"
+				},
+				"CustomerName": {
+					"type": "string"
+				},
+				"ItemName": {
+					"type": "string"
+				},
+				"Amount": {
+					"type": "number"
+				}
+			}
+		},
+		"typeProperties": {
+			"collectionName": "orders_container"
+		}
+	}
+}
