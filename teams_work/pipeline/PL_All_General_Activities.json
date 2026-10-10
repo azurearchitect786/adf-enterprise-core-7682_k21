@@ -1,0 +1,373 @@
+{
+	"name": "PL_All_General_Activities",
+	"properties": {
+		"activities": [
+			{
+				"name": "Web_Fetch_API_Token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"url": "https://httpbin.org"
+				}
+			},
+			{
+				"name": "Validation_Check_Source_Availability",
+				"type": "Validation",
+				"dependsOn": [
+					{
+						"activity": "Web_Fetch_API_Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ADLS_CSV_Source",
+						"type": "DatasetReference"
+					},
+					"timeout": "00:05:00",
+					"sleep": 10
+				}
+			},
+			{
+				"name": "Lookup_Get_Table_Metadata",
+				"type": "Lookup",
+				"dependsOn": [
+					{
+						"activity": "Validation_Check_Source_Availability",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT 'dbo.StoreSalesSink' AS TableName, 'Parquet' AS OutputFormat\nUNION ALL\nSELECT 'dbo.CustomerMasterSink' AS TableName, 'Parquet' AS OutputFormat;\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_StoreSales_Sink",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Set_Initialize_Summary_Array",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Get_Table_Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "TableListSummary",
+					"value": {
+						"value": "@activity('Lookup_Get_Table_Metadata').output.value",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ForEach_Table_In_Control_List",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Set_Initialize_Summary_Array",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('TableListSummary')",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Execute_Child_Ingestion_Task",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "PL_Ingest_Retail_Data",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true
+							}
+						},
+						{
+							"name": "Append_To_Processed_Log",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "Execute_Child_Ingestion_Task",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "TableListSummary",
+								"value": {
+									"value": "@item().TableName",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "SP_Write_Global_Batch_Status",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "ForEach_Table_In_Control_List",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[sp_LogPipelineStart]",
+					"storedProcedureParameters": {
+						"DataFactoryName": {
+							"value": {
+								"value": "@pipeline().DataFactory",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineName": {
+							"value": {
+								"value": "@pipeline().Pipeline",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"PipelineRunID": {
+							"value": {
+								"value": "@pipeline().RunId",
+								"type": "Expression"
+							},
+							"type": "Guid"
+						},
+						"TriggerName": {
+							"value": {
+								"value": "@pipeline().TriggerName",
+								"type": "Expression"
+							},
+							"type": "String"
+						},
+						"TriggerType": {
+							"value": {
+								"value": "@pipeline().TriggerType",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Sink",
+					"type": "LinkedServiceReference"
+				}
+			},
+			{
+				"name": "Script_Verify_Target_Integrity",
+				"type": "Script",
+				"dependsOn": [
+					{
+						"activity": "SP_Write_Global_Batch_Status",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Sink",
+					"type": "LinkedServiceReference"
+				},
+				"typeProperties": {
+					"scripts": [
+						{
+							"type": "Query",
+							"text": {
+								"value": "UPDATE dbo.PipelineExecutionLogs \nSET ExecutionStatus = 'Success', ExecutionEndTime = SYSUTCDATETIME() \nWHERE PipelineRunID = '@{pipeline().RunId}';\n",
+								"type": "Expression"
+							}
+						}
+					],
+					"scriptBlockExecutionTimeout": "02:00:00"
+				}
+			},
+			{
+				"name": "Get_Folder_Audit_Metrics",
+				"type": "GetMetadata",
+				"dependsOn": [
+					{
+						"activity": "Script_Verify_Target_Integrity",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ADLS_CSV_Source",
+						"type": "DatasetReference"
+					},
+					"fieldList": [
+						"exists"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "Wait_For_System_Refresh",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "Get_Folder_Audit_Metrics",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 10
+				}
+			},
+			{
+				"name": "Delete_Temporary_Staging_Files",
+				"type": "Delete",
+				"dependsOn": [
+					{
+						"activity": "Wait_For_System_Refresh",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "DS_ADLS_CSV_Source",
+						"type": "DatasetReference"
+					},
+					"enableLogging": false,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "Fail_Pipeline_On_Audit_Anomaly",
+				"type": "Fail",
+				"dependsOn": [
+					{
+						"activity": "Delete_Temporary_Staging_Files",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"message": "Enterprise Integrity Error: Metadata batch verification threshold broken.",
+					"errorCode": "ERR_METADATA_099"
+				}
+			}
+		],
+		"variables": {
+			"TableListSummary": {
+				"type": "Array"
+			},
+			"ActiveTableName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-10-07T05:31:09Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

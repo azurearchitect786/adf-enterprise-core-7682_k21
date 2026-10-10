@@ -1,0 +1,19 @@
+{
+	"name": "DS_ADLS_Signal_File",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Gen2_Raw",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "ready.txt",
+				"fileSystem": "raw-zone"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

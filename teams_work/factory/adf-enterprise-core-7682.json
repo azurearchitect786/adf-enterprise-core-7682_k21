@@ -1,0 +1,27 @@
+{
+	"name": "adf-enterprise-core-7682",
+	"properties": {
+		"globalConfigurations": {
+			"mountedConfiguration": [
+				{
+					"workspaceId": "8829c75c-e86b-430e-af26-6220f679c25d",
+					"artifactId": "6584fb99-ba0c-4a15-9a71-5ce4a9fc1865"
+				},
+				{
+					"workspaceId": "3a127d90-a4f1-44aa-a423-8a786e3551f5",
+					"artifactId": "ecdbae2f-3217-4e9b-ab2d-0028257e33e6"
+				}
+			]
+		},
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true
+		}
+	},
+	"location": "centralus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2afa90fb-1d96-4e4c-b4cc-c019d1eacb40",
+		"tenantId": "61cfbac0-31b5-4fa9-9f52-4b718e70bd9e"
+	}
+}

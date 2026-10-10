@@ -1,0 +1,140 @@
+{
+	"name": "PL_Data_Consistency_Verify",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_CSV_To_Blob",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": true,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"enableSkipIncompatibleRow": true,
+					"validateDataConsistency": true,
+					"logSettings": {
+						"enableCopyActivityLog": true,
+						"copyActivityLogSettings": {
+							"logLevel": "Warning",
+							"enableReliableLogging": false
+						},
+						"logLocationSettings": {
+							"linkedServiceName": {
+								"referenceName": "LS_ADLS_Gen2_Raw",
+								"type": "LinkedServiceReference"
+							},
+							"path": "log-container"
+						}
+					},
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_Sales_Source",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_Destination_Sales_CSV",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "If_Consistent_Check",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "Copy_CSV_To_Blob",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@equals(activity('Copy_CSV_To_Blob').output.dataRead, activity('Copy_CSV_To_Blob').output.dataWritten)\n",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Set_Status_Message_2",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "StatusMessage",
+								"value": "\"Data Inconsistent\""
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Set_Status_Message",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "StatusMessage",
+								"value": "\"Data Consistent\""
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"StatusMessage": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-10-04T11:06:44Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

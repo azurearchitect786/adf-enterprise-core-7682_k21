@@ -1,0 +1,6 @@
+{
+	"name": "shirvm",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}

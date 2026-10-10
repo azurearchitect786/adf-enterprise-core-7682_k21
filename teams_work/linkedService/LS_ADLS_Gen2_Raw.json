@@ -1,0 +1,11 @@
+{
+	"name": "LS_ADLS_Gen2_Raw",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://sadlsextng7682.dfs.core.windows.net/"
+		}
+	}
+}

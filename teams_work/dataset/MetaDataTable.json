@@ -1,0 +1,54 @@
+{
+	"name": "MetaDataTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Metademo",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SQLServerName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "GlobalSQLDB",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SchemaName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SQLSourceTable",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SQLTargetTable",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CosmosAccountName",
+				"type": "nvarchar"
+			},
+			{
+				"name": "GlobalCosmosDB",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CosmosSourceContainer",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CosmosTargetContainer",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "PipelineMetadata"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

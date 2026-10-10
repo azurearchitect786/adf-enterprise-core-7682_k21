@@ -1,0 +1,93 @@
+{
+	"name": "DS_SQL_StoreSales_Sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Sink",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "LogID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DataFactoryName",
+				"type": "varchar"
+			},
+			{
+				"name": "PipelineName",
+				"type": "varchar"
+			},
+			{
+				"name": "PipelineRunID",
+				"type": "uniqueidentifier"
+			},
+			{
+				"name": "ParentPipelineRunID",
+				"type": "uniqueidentifier"
+			},
+			{
+				"name": "ExecutionStartTime",
+				"type": "datetime2",
+				"scale": 3
+			},
+			{
+				"name": "ExecutionEndTime",
+				"type": "datetime2",
+				"scale": 3
+			},
+			{
+				"name": "DurationInSeconds",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "TriggerType",
+				"type": "varchar"
+			},
+			{
+				"name": "TriggerName",
+				"type": "varchar"
+			},
+			{
+				"name": "TriggerTime",
+				"type": "varchar"
+			},
+			{
+				"name": "ExecutionStatus",
+				"type": "varchar"
+			},
+			{
+				"name": "RowsRead",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "RowsWritten",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "FilesProcessed",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ErrorMessage",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ErrorCategory",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "StoreSalesSink"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

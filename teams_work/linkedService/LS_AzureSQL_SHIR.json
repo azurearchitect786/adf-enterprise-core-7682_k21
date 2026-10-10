@@ -1,0 +1,36 @@
+{
+	"name": "LS_AzureSQL_SHIR",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"secretname": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "shir-demo-server.database.windows.net",
+			"database": "shir-demo-db",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SQL",
+			"userName": "sqladmin",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "LS_AKV_MI",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": {
+					"value": "@linkedService().secretname",
+					"type": "Expression"
+				}
+			}
+		},
+		"connectVia": {
+			"referenceName": "shirvm",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

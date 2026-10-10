@@ -1,0 +1,241 @@
+{
+	"name": "E2E_Batch_Medallion",
+	"properties": {
+		"activities": [
+			{
+				"name": "lkp_SourceTables",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT Table_Name FROM Information_Schema.Tables \nWHERE Table_Name IN ('Products', 'Customers', 'Resellers', 'Orders')\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_AzureSQL_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "Tables",
+							"SchemaName": "Information_Schema",
+							"ds_sql_dbname": {
+								"value": "@pipeline().parameters.DBName",
+								"type": "Expression"
+							},
+							"serverName": {
+								"value": "@pipeline().parameters.ServerName",
+								"type": "Expression"
+							}
+						}
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "For_Each_Source_Table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "lkp_SourceTables",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lkp_SourceTables').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "copy_SQL_to_Bronze",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "DS_AzureSQL_Parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"TableName": {
+											"value": "@item().Table_Name",
+											"type": "Expression"
+										},
+										"SchemaName": "dbo",
+										"ds_sql_dbname": {
+											"value": "@pipeline().parameters.DBName",
+											"type": "Expression"
+										},
+										"serverName": {
+											"value": "@pipeline().parameters.ServerName",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DS_ADLS_Bronze_Parameterized",
+									"type": "DatasetReference",
+									"parameters": {
+										"FileName": {
+											"value": "@concat(item().Table_Name, '.csv')",
+											"type": "Expression"
+										},
+										"ADLSName": {
+											"value": "@pipeline().parameters.ADLSName",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Run_Silver_Flow",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "For_Each_Source_Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_Transform_Silver",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"Products": {
+								"FileName": "Products.csv",
+								"ADLSName": "sadlsextng7682"
+							},
+							"Customers": {
+								"FileName": "Customers.csv",
+								"ADLSName": "sadlsextng7682"
+							},
+							"Resellers": {
+								"FileName": "Resellers.csv",
+								"ADLSName": "sadlsextng7682"
+							},
+							"Orders": {
+								"FileName": "Orders.csv",
+								"ADLSName": "sadlsextng7682"
+							}
+						},
+						"linkedServiceParameters": {
+							"sinkSilverDelta": {
+								"linkedService": {
+									"adls_name": "sadlsextng7682"
+								}
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Gold_Analytics",
+				"type": "DatabricksNotebook",
+				"dependsOn": [
+					{
+						"activity": "Run_Silver_Flow",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/ds01_adam@aimlesss.com/Analytics_Gold"
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureDatabricks",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"DBName": {
+				"type": "string"
+			},
+			"ServerName": {
+				"type": "string"
+			},
+			"ADLSName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-10-07T07:06:16Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,180 @@
+{
+	"name": "df_Transform_Silver",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze_Parameterized",
+						"type": "DatasetReference"
+					},
+					"name": "Products"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze_Parameterized",
+						"type": "DatasetReference"
+					},
+					"name": "Customers"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze_Parameterized",
+						"type": "DatasetReference"
+					},
+					"name": "Resellers"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Bronze_Parameterized",
+						"type": "DatasetReference"
+					},
+					"name": "Orders"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "LS_ADLS_Parameterized",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sinkSilverDelta"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoinProducts"
+				},
+				{
+					"name": "JoinCustomers"
+				},
+				{
+					"name": "JoinAllDimensions"
+				},
+				{
+					"name": "AddBusinessLogic"
+				},
+				{
+					"name": "FilterValidSales"
+				},
+				{
+					"name": "CleanUpDuplicateColumns"
+				},
+				{
+					"name": "GenerateSalesKey"
+				},
+				{
+					"name": "ComputeWindowMetrics"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ProductID as short,",
+				"          ProductName as string,",
+				"          Category as string,",
+				"          UnitPrice as double",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Products",
+				"source(output(",
+				"          CustomerID as short,",
+				"          CustomerName as string,",
+				"          Segment as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Customers",
+				"source(output(",
+				"          ResellerID as short,",
+				"          ResellerName as string,",
+				"          DiscountTier as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Resellers",
+				"source(output(",
+				"          OrderID as short,",
+				"          ProductID as short,",
+				"          CustomerID as short,",
+				"          ResellerID as short,",
+				"          Quantity as short,",
+				"          OrderDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Orders",
+				"Orders, Products join(Orders@ProductID == Products@ProductID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinProducts",
+				"JoinProducts, Customers join(Orders@CustomerID == Customers@CustomerID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinCustomers",
+				"JoinCustomers, Resellers join(Orders@ResellerID == Resellers@ResellerID,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinAllDimensions",
+				"JoinAllDimensions derive(GrossRevenue = Quantity * UnitPrice,",
+				"          SalesChannel = iif(isNull(toString(Orders@ResellerID)), 'B2C', 'B2B'),",
+				"          CustomerNameClean = initCap(lower(coalesce(CustomerName, ResellerName)))) ~> AddBusinessLogic",
+				"AddBusinessLogic filter(GrossRevenue > 0) ~> FilterValidSales",
+				"FilterValidSales select(mapColumn(",
+				"          OrderID,",
+				"          ProductID = Orders@ProductID,",
+				"          CustomerID = Orders@CustomerID,",
+				"          ResellerID = Orders@ResellerID,",
+				"          Quantity,",
+				"          OrderDate,",
+				"          ProductName,",
+				"          Category,",
+				"          UnitPrice,",
+				"          CustomerName,",
+				"          Segment,",
+				"          ResellerName,",
+				"          DiscountTier,",
+				"          GrossRevenue,",
+				"          SalesChannel,",
+				"          CustomerNameClean",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> CleanUpDuplicateColumns",
+				"CleanUpDuplicateColumns keyGenerate(output(SalesKey as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> GenerateSalesKey",
+				"GenerateSalesKey window(over(SalesChannel),",
+				"     desc(OrderDate, true),",
+				"     RunningRevenueTotal = sum(GrossRevenue),",
+				"          ChannelSalesRank = denseRank()) ~> ComputeWindowMetrics",
+				"ComputeWindowMetrics sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'consolidated_sales',",
+				"     deltaTruncate: true,",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     upsertable: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('key',",
+				"          0,",
+				"          SalesChannel",
+				"     )) ~> sinkSilverDelta"
+			]
+		}
+	}
+}

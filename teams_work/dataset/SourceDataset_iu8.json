@@ -1,0 +1,36 @@
+{
+	"name": "SourceDataset_iu8",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Sink",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CustomerID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "CustomerName",
+				"type": "varchar"
+			},
+			{
+				"name": "City",
+				"type": "varchar"
+			},
+			{
+				"name": "LastModifiedDate",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "SampleCustomers"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

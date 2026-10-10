@@ -1,0 +1,50 @@
+{
+	"name": "Class_MetaDataDrivenCopyTask_706_SourceDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"DBName": {
+					"value": "@dataset().cw_ls_DBName",
+					"type": "Expression"
+				},
+				"ServerName": {
+					"value": "@dataset().cw_ls_ServerName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"cw_schema": {
+				"type": "String"
+			},
+			"cw_table": {
+				"type": "String"
+			},
+			"cw_ls_DBName": {
+				"type": "String"
+			},
+			"cw_ls_ServerName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Class_MetaDataDrivenCopyTask_706_20261006"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().cw_schema",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().cw_table",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

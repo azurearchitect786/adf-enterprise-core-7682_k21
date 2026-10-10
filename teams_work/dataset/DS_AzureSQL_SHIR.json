@@ -1,0 +1,40 @@
+{
+	"name": "DS_AzureSQL_SHIR",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_SHIR",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"secretname": {
+					"value": "@dataset().secretname",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"schemaname": {
+				"type": "string"
+			},
+			"tablename": {
+				"type": "string"
+			},
+			"secretname": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().schemaname",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().tablename",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

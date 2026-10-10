@@ -1,0 +1,42 @@
+{
+	"name": "DS_ADLS_Bronze_Parameterized",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"adls_name": {
+					"value": "@dataset().ADLSName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"FileName": {
+				"type": "string"
+			},
+			"ADLSName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().FileName",
+					"type": "Expression"
+				},
+				"folderPath": "sql_ingest",
+				"fileSystem": "bronze"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

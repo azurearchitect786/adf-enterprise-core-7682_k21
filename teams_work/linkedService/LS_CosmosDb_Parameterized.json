@@ -1,0 +1,22 @@
+{
+	"name": "LS_CosmosDb_Parameterized",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"CosmosDBName": {
+				"type": "string"
+			},
+			"CosmosAccountName": {
+				"type": "string"
+			}
+		},
+		"annotations": [
+			"Managed-Identity-Authenticated"
+		],
+		"type": "CosmosDb",
+		"typeProperties": {
+			"accountEndpoint": "@{concat('https://',linkedService().CosmosAccountName,'.documents.azure.com:443/')}",
+			"database": "@{linkedService().CosmosDBName}"
+		}
+	}
+}

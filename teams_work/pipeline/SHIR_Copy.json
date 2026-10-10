@@ -1,0 +1,95 @@
+{
+	"name": "SHIR_Copy",
+	"properties": {
+		"activities": [
+			{
+				"name": "Shir_Copy",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "CosmosDbSqlApiSink",
+						"writeBehavior": "insert"
+					},
+					"enableStaging": false
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_AzureSQL_SHIR",
+						"type": "DatasetReference",
+						"parameters": {
+							"schemaname": {
+								"value": "@pipeline().parameters.schema_name",
+								"type": "Expression"
+							},
+							"tablename": {
+								"value": "@pipeline().parameters.table_name",
+								"type": "Expression"
+							},
+							"secretname": {
+								"value": "@pipeline().parameters.secret_name",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_Cosmos_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"ds_collection_name": {
+								"value": "@pipeline().parameters.container_name",
+								"type": "Expression"
+							},
+							"ds_cosmos_dbname": {
+								"value": "@pipeline().parameters.db_name",
+								"type": "Expression"
+							},
+							"ds_cosmos_acc_name": {
+								"value": "@pipeline().parameters.CosmosAccountName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"secret_name": {
+				"type": "string"
+			},
+			"schema_name": {
+				"type": "string"
+			},
+			"table_name": {
+				"type": "string"
+			},
+			"container_name": {
+				"type": "string"
+			},
+			"db_name": {
+				"type": "string"
+			},
+			"CosmosAccountName": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-10-05T16:25:24Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,43 @@
+{
+	"name": "Class_MetaDataDrivenCopyTask_706_DestinationDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_CosmosDb_Parameterized",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"CosmosDBName": {
+					"value": "@dataset().cw_ls_CosmosDBName",
+					"type": "Expression"
+				},
+				"CosmosAccountName": {
+					"value": "@dataset().cw_ls_CosmosAccountName",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"cw_collectionName": {
+				"type": "String"
+			},
+			"cw_ls_CosmosDBName": {
+				"type": "String"
+			},
+			"cw_ls_CosmosAccountName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Class_MetaDataDrivenCopyTask_706_20261006"
+		},
+		"annotations": [],
+		"type": "CosmosDbSqlApiCollection",
+		"schema": {},
+		"typeProperties": {
+			"collectionName": {
+				"value": "@dataset().cw_collectionName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,45 @@
+{
+	"name": "DS_SQL_ECommerce_Sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_Sink",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "TransactionID",
+				"type": "varchar"
+			},
+			{
+				"name": "CustomerID",
+				"type": "varchar"
+			},
+			{
+				"name": "ProductCategory",
+				"type": "varchar"
+			},
+			{
+				"name": "Amount",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "DiscountCode",
+				"type": "varchar"
+			},
+			{
+				"name": "IngestionTime",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "ECommerceTransactions"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

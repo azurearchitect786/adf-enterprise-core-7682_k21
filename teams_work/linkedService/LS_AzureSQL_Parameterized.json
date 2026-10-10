@@ -1,0 +1,23 @@
+{
+	"name": "LS_AzureSQL_Parameterized",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"DBName": {
+				"type": "string"
+			},
+			"ServerName": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "@{concat(linkedService().ServerName,'.database.windows.net')}",
+			"database": "@{linkedService().DBName}",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}

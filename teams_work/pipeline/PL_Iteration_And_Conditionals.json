@@ -1,0 +1,344 @@
+{
+	"name": "PL_Iteration_And_Conditionals",
+	"properties": {
+		"activities": [
+			{
+				"name": "Wait_For_Landing_Zone_Signal",
+				"type": "Until",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@bool(activity('Check_Signal_File').output.exists)",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Check_Signal_File",
+							"type": "GetMetadata",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "DS_ADLS_Signal_File",
+									"type": "DatasetReference"
+								},
+								"fieldList": [
+									"exists"
+								],
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "BinaryReadSettings"
+								}
+							}
+						}
+					],
+					"timeout": "0.12:00:00"
+				}
+			},
+			{
+				"name": "Filter_Active_Tables_Only",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Wait_For_Landing_Zone_Signal",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('RawTableMetadata')",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@item().Active",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Loop_Through_Filtered_Tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Filter_Active_Tables_Only",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter_Active_Tables_Only').output.value",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Check_Ingestion_Type",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@equals(item().Type, 'Delta')",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "Full_Overwrite_Ingestion",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "AzureSqlSink",
+												"preCopyScript": "TRUNCATE TABLE dbo.CustomerMasterSink;\n",
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": false,
+												"disableMetricsCollection": false
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"mappings": [
+													{
+														"source": {
+															"name": "CustomerID",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "CustomerID",
+															"type": "String",
+															"physicalType": "varchar"
+														}
+													},
+													{
+														"source": {
+															"name": "CustomerName",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "CustomerName",
+															"type": "String",
+															"physicalType": "varchar"
+														}
+													},
+													{
+														"source": {
+															"name": "Email",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "Email",
+															"type": "String",
+															"physicalType": "varchar"
+														}
+													},
+													{
+														"source": {
+															"name": "Region",
+															"type": "String",
+															"physicalType": "String"
+														},
+														"sink": {
+															"name": "Region",
+															"type": "String",
+															"physicalType": "varchar"
+														}
+													}
+												],
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "DS_ADLS_Customers_Full_Source",
+												"type": "DatasetReference"
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "DS_SQL_CustomerMaster_Sink",
+												"type": "DatasetReference"
+											}
+										]
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "SP_Log_Delta_Run",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": "[dbo].[sp_LogDeltaIngestionCheck]",
+											"storedProcedureParameters": {
+												"DataFactoryName": {
+													"value": {
+														"value": "@pipeline().DataFactory",
+														"type": "Expression"
+													},
+													"type": "String"
+												},
+												"PipelineRunID": {
+													"value": {
+														"value": "@pipeline().RunId",
+														"type": "Expression"
+													},
+													"type": "Guid"
+												},
+												"Status": {
+													"value": "\"InProgess-Delta\"",
+													"type": "String"
+												},
+												"TargetTableName": {
+													"value": {
+														"value": "@item().Name",
+														"type": "Expression"
+													},
+													"type": "String"
+												}
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "LS_AzureSQL_Sink",
+											"type": "LinkedServiceReference"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "Route_By_Target_Storage_Format",
+							"type": "Switch",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"on": {
+									"value": "@item().Target",
+									"type": "Expression"
+								},
+								"cases": [
+									{
+										"value": "Parquet",
+										"activities": [
+											{
+												"name": "Wait_For_Parquet_Format",
+												"type": "Wait",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"waitTimeInSeconds": 5
+												}
+											}
+										]
+									},
+									{
+										"value": "CSV",
+										"activities": [
+											{
+												"name": "Wait_For_CSV_Format",
+												"type": "Wait",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"waitTimeInSeconds": 5
+												}
+											}
+										]
+									}
+								],
+								"defaultActivities": [
+									{
+										"name": "Wait_For_Default_Fallback",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 5
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"RawTableMetadata": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"Name": "dbo.Sales",
+						"Active": true,
+						"Type": "Delta",
+						"Target": "Parquet"
+					},
+					{
+						"Name": "dbo.Logs",
+						"Active": false,
+						"Type": "Full",
+						"Target": "CSV"
+					},
+					{
+						"Name": "dbo.Customers",
+						"Active": true,
+						"Type": "Full",
+						"Target": "DeltaTable"
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-10-07T05:10:11Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

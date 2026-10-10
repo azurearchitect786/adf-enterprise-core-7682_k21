@@ -1,0 +1,15 @@
+{
+	"name": "LS_AzureSQLDW_Sink",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"server": "sql-server-etnd-7682.database.windows.net",
+			"database": "EnterpriseWarehouse",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}

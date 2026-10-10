@@ -1,0 +1,27 @@
+{
+	"name": "MetadataDrivenCopyTask_xqs_DestinationDS",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_Cosmos_Dynamic",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"cw_collectionName": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "MetadataDrivenCopyTask_xqs_20261006"
+		},
+		"annotations": [],
+		"type": "CosmosDbSqlApiCollection",
+		"schema": {},
+		"typeProperties": {
+			"collectionName": {
+				"value": "@dataset().cw_collectionName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

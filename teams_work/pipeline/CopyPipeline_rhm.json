@@ -1,0 +1,197 @@
+{
+	"name": "CopyPipeline_rhm",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEach_rhm",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.cw_items",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Copy_rhm",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [
+								{
+									"name": "Source",
+									"value": "dbo.@{item().source.table}"
+								},
+								{
+									"name": "Destination",
+									"value": "@{item().destination.collectionName}"
+								}
+							],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"queryTimeout": "00:05:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "CosmosDbSqlApiSink",
+									"writeBehavior": "insert",
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"enableSkipIncompatibleRow": true,
+								"validateDataConsistency": true,
+								"logSettings": {
+									"enableCopyActivityLog": true,
+									"copyActivityLogSettings": {
+										"logLevel": "Warning",
+										"enableReliableLogging": false
+									},
+									"logLocationSettings": {
+										"linkedServiceName": {
+											"referenceName": "LS_ADLS_Gen2_Raw",
+											"type": "LinkedServiceReference"
+										},
+										"path": "log-container"
+									}
+								},
+								"translator": {
+									"value": "@item().copyActivity.translator",
+									"type": "Expression"
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "SourceDataset_rhm",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_table": "@item().source.table"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "DestinationDataset_rhm",
+									"type": "DatasetReference",
+									"parameters": {
+										"cw_collectionName": "@item().destination.collectionName"
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"cw_items": {
+				"type": "Array",
+				"defaultValue": [
+					{
+						"source": {
+							"table": "SampleCustomers"
+						},
+						"destination": {
+							"collectionName": "customers_cosmos_collection"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "CustomerID",
+											"type": "Int32"
+										},
+										"sink": {
+											"path": "/customerid"
+										}
+									},
+									{
+										"source": {
+											"name": "City",
+											"type": "String"
+										},
+										"sink": {
+											"path": "/location/city"
+										}
+									},
+									{
+										"source": {
+											"name": "CustomerName",
+											"type": "String"
+										},
+										"sink": {
+											"path": "/customername"
+										}
+									},
+									{
+										"source": {
+											"name": "LastModifiedDate",
+											"type": "DateTime"
+										},
+										"sink": {
+											"path": "/lastmodifieddate"
+										}
+									}
+								]
+							}
+						}
+					},
+					{
+						"source": {
+							"table": "SampleProducts"
+						},
+						"destination": {
+							"collectionName": "products_cosmos_collection"
+						},
+						"copyActivity": {
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "ProductID",
+											"type": "Int32"
+										},
+										"sink": {
+											"path": "/ProductId"
+										}
+									},
+									{
+										"source": {
+											"name": "ProductName",
+											"type": "String"
+										},
+										"sink": {
+											"path": "/name"
+										}
+									},
+									{
+										"source": {
+											"name": "Price",
+											"type": "Decimal"
+										},
+										"sink": {
+											"path": "/price"
+										}
+									}
+								]
+							}
+						}
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-10-06T06:33:38Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

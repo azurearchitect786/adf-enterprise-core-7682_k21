@@ -1,0 +1,118 @@
+{
+	"name": "DF_Rescue_Corrupted_Rows",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_RejectedLogs_Source",
+						"type": "DatasetReference"
+					},
+					"name": "RawRejectedLogs"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ADLS_Class3_FolderSource",
+						"type": "DatasetReference"
+					},
+					"name": "OrignalDataSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_SQL_ECommerce_Sink",
+						"type": "DatasetReference"
+					},
+					"name": "IngestIntoSQL"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SplitCorruptRows"
+				},
+				{
+					"name": "ScrubAndRepairMetrics"
+				},
+				{
+					"name": "CorruptRecords"
+				},
+				{
+					"name": "TakeRelevantColumns"
+				},
+				{
+					"name": "AmountAndDiscountFix"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Timestamp as string,",
+				"          Level as string,",
+				"          OperationName as string,",
+				"          OperationItem as string,",
+				"          Message as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     wildcardPaths:['**/*.txt']) ~> RawRejectedLogs",
+				"source(output(",
+				"          TransactionID as string,",
+				"          CustomerID as string,",
+				"          ProductCategory as string,",
+				"          Amount as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> OrignalDataSource",
+				"RawRejectedLogs split(instr(toString(byName('OperationName')), 'TabularRowSkip') > 0,",
+				"     disjoint: false) ~> SplitCorruptRows@(TabularRowSkip)",
+				"SplitCorruptRows@TabularRowSkip derive(TransactionID = regexReplace(toString(byName('OperationItem')), '\"', ''),",
+				"          CustomerID = regexReplace(toString(byName('Message')), '\"', '')) ~> ScrubAndRepairMetrics",
+				"OrignalDataSource, ScrubAndRepairMetrics join(OrignalDataSource@TransactionID == ScrubAndRepairMetrics@TransactionID",
+				"     && OrignalDataSource@CustomerID == ScrubAndRepairMetrics@CustomerID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> CorruptRecords",
+				"CorruptRecords select(mapColumn(",
+				"          TransactionID = OrignalDataSource@TransactionID,",
+				"          CustomerID = OrignalDataSource@CustomerID,",
+				"          ProductCategory,",
+				"          Amount,",
+				"          Timestamp",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> TakeRelevantColumns",
+				"TakeRelevantColumns derive(Amount = toDecimal(0.00, 18, 2),",
+				"          Discount = toString(null())) ~> AmountAndDiscountFix",
+				"AmountAndDiscountFix sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          TransactionID as string,",
+				"          CustomerID as string,",
+				"          ProductCategory as string,",
+				"          Amount as decimal(18,2),",
+				"          DiscountCode as string,",
+				"          IngestionTime as timestamp",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          TransactionID,",
+				"          CustomerID,",
+				"          ProductCategory,",
+				"          Amount,",
+				"          DiscountCode = Discount",
+				"     )) ~> IngestIntoSQL"
+			]
+		}
+	}
+}

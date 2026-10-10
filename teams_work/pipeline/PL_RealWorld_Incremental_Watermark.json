@@ -1,0 +1,193 @@
+{
+	"name": "PL_RealWorld_Incremental_Watermark",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_Get_Current_Watermark",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT WatermarkValue FROM dbo.WatermarkControl WHERE TableName = 'dbo.DeltaOrdersSource'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_Incremental_Source",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Lookup_Get_Max_Source_Timestamp",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT MAX(LastModifiedDateTime) as NewWatermarkValue FROM dbo.DeltaOrdersSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_SQL_Incremental_Source",
+						"type": "DatasetReference"
+					}
+				}
+			},
+			{
+				"name": "Copy_Delta_Records_To_Warehouse",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Get_Current_Watermark",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Lookup_Get_Max_Source_Timestamp",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.00:30:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT OrderID, CustomerKey, OrderAmount, LastModifiedDateTime FROM dbo.DeltaOrdersSource WHERE LastModifiedDateTime > '@{activity('Lookup_Get_Current_Watermark').output.firstRow.WatermarkValue}' AND LastModifiedDateTime <= '@{activity('Lookup_Get_Max_Source_Timestamp').output.firstRow.NewWatermarkValue}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "Insert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "OrderID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "OrderID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "CustomerKey",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CustomerKey",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "OrderAmount",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "OrderAmount",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "LastModifiedDateTime",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LastModifiedDateTime",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_SQL_Incremental_Source",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_SQL_Warehouse_Sink",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "SP_Update_Watermark_Control_Checkpoint",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Copy_Delta_Records_To_Warehouse",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[sp_UpdateWatermarkCheckpoint]",
+					"storedProcedureParameters": {
+						"NewWatermarkValue": {
+							"value": {
+								"value": "@formatDateTime(activity('Lookup_Get_Max_Source_Timestamp').output.firstRow.NewWatermarkValue, 'yyyy-MM-dd HH:mm:ss.fff')\n",
+								"type": "Expression"
+							},
+							"type": "Datetime"
+						},
+						"TargetTableName": {
+							"value": "dbo.DeltaOrdersSource",
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_Sink",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-10-03T11:51:21Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

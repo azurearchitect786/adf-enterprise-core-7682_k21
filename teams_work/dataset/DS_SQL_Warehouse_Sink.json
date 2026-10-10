@@ -1,0 +1,43 @@
+{
+	"name": "DS_SQL_Warehouse_Sink",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQLDW_Sink",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlDWTable",
+		"schema": [
+			{
+				"name": "OrderID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "CustomerKey",
+				"type": "varchar"
+			},
+			{
+				"name": "OrderAmount",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "LastModifiedDateTime",
+				"type": "datetime2",
+				"scale": 3
+			},
+			{
+				"name": "DataWarehouseLoadTime",
+				"type": "datetime2",
+				"scale": 7
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "WarehouseOrdersSink"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

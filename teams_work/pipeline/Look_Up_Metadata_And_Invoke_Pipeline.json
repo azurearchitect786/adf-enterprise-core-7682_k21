@@ -1,0 +1,201 @@
+{
+	"name": "Look_Up_Metadata_And_Invoke_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Lookup_Metadata",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "MetaDataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "For_Each_MetaData_Row",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Metadata",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Lookup_Metadata').output.value\n",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Execute_Sync_copy",
+							"type": "ExecutePipeline",
+							"dependsOn": [],
+							"policy": {
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"pipeline": {
+									"referenceName": "Demo_Bidirectional_Sync",
+									"type": "PipelineReference"
+								},
+								"waitOnCompletion": true,
+								"parameters": {
+									"GlobalSQLDB": {
+										"value": "@item().GlobalSQLDB",
+										"type": "Expression"
+									},
+									"GlobalCosmosDB": {
+										"value": "@item().GlobalCosmosDB",
+										"type": "Expression"
+									},
+									"CosmosSourceContainer": {
+										"value": "@item().CosmosSourceContainer",
+										"type": "Expression"
+									},
+									"CosmosTargetContainer": {
+										"value": "@item().CosmosTargetContainer",
+										"type": "Expression"
+									},
+									"SQLSourceTable": {
+										"value": "@item().SQLSourceTable",
+										"type": "Expression"
+									},
+									"SQLTargetTable": {
+										"value": "@item().SQLTargetTable",
+										"type": "Expression"
+									},
+									"SchemaName": {
+										"value": "@item().SchemaName",
+										"type": "Expression"
+									},
+									"SQLServerName": {
+										"value": "@item().SQLServerName",
+										"type": "Expression"
+									},
+									"CosmosAccountName": {
+										"value": "@item().CosmosAccountName",
+										"type": "Expression"
+									}
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Execute_Sync_copy_copy1",
+				"type": "ExecutePipeline",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Lookup_Metadata_copy1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "Demo_Bidirectional_Sync",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"GlobalSQLDB": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.GlobalSQLDB",
+							"type": "Expression"
+						},
+						"GlobalCosmosDB": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.GlobalCosmosDB",
+							"type": "Expression"
+						},
+						"CosmosSourceContainer": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.CosmosSourceContainer",
+							"type": "Expression"
+						},
+						"CosmosTargetContainer": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.CosmosTargetContainer",
+							"type": "Expression"
+						},
+						"SQLSourceTable": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.SQLSourceTable",
+							"type": "Expression"
+						},
+						"SQLTargetTable": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.SQLTargetTable",
+							"type": "Expression"
+						},
+						"SchemaName": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.SchemaName",
+							"type": "Expression"
+						},
+						"SQLServerName": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.SQLServerName",
+							"type": "Expression"
+						},
+						"CosmosAccountName": {
+							"value": "@activity('Lookup_Metadata_copy1').output.firstRow.CosmosAccountName",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Lookup_Metadata_copy1",
+				"type": "Lookup",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "MetaDataTable",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2026-10-06T07:16:31Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
