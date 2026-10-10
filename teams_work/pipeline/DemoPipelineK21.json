@@ -5,14 +5,7 @@
 			{
 				"name": "My_Copy",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "Set_Some_Variable",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -34,30 +27,8 @@
 						"type": "DatasetReference"
 					}
 				]
-			},
-			{
-				"name": "Set_Some_Variable",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "SomeVariable",
-					"value": {
-						"value": "junk#@U&(#W)HBFLKKLBLKFBO#I)&%(@&)%",
-						"type": "Expression"
-					}
-				}
 			}
 		],
-		"variables": {
-			"SomeVariable": {
-				"type": "String"
-			}
-		},
 		"annotations": []
 	}
 }
