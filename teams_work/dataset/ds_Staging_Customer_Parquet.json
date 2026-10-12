@@ -1,0 +1,20 @@
+{
+	"name": "ds_Staging_Customer_Parquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Parameterized",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "customer_extract",
+				"fileSystem": "staging"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	}
+}
