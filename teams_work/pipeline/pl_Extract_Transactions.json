@@ -181,6 +181,60 @@
 						"ServerName": "sql-server-etnd-7682"
 					}
 				}
+			},
+			{
+				"name": "Customer_SCD_Type2",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "UpdateWatermarkTable",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_SCD2_Customer",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"LakeSource": {
+								"lake_name": "sadlsextng7682"
+							},
+							"DimSource": {
+								"TableName": "DimCustomer",
+								"SchemaName": "dbo",
+								"ds_sql_dbname": "sqldb-enterprise-sink",
+								"serverName": "sql-server-etnd-7682"
+							},
+							"SinkNewRecords": {
+								"TableName": "DimCustomer",
+								"SchemaName": "dbo",
+								"ds_sql_dbname": "sqldb-enterprise-sink",
+								"serverName": "sql-server-etnd-7682"
+							},
+							"SinkExpiredRecords": {
+								"TableName": "DimCustomer",
+								"SchemaName": "dbo",
+								"ds_sql_dbname": "sqldb-enterprise-sink",
+								"serverName": "sql-server-etnd-7682"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
 			}
 		],
 		"annotations": []
