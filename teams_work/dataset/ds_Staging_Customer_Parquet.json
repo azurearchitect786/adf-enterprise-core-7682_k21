@@ -3,7 +3,18 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "LS_ADLS_Parameterized",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"adls_name": {
+					"value": "@dataset().lake_name",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"lake_name": {
+				"type": "string"
+			}
 		},
 		"annotations": [],
 		"type": "Parquet",
