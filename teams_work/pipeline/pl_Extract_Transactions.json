@@ -273,7 +273,7 @@
 							"lake_name": "sadlsextng7682"
 						}
 					},
-					"enableLogging": true,
+					"enableLogging": false,
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
 						"recursive": true,
