@@ -1,0 +1,64 @@
+{
+	"name": "pl_Extract_Transactions",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy_SQL_to_Lake",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_AzureSQL_Parameterized",
+						"type": "DatasetReference",
+						"parameters": {
+							"TableName": "Transactions_Customer",
+							"SchemaName": "dbo",
+							"ds_sql_dbname": "sqldb-enterprise-sink",
+							"serverName": "sql-server-etnd-7682"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_Staging_Customer_Parquet",
+						"type": "DatasetReference"
+					}
+				]
+			}
+		],
+		"annotations": []
+	}
+}
