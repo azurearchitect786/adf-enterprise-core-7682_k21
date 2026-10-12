@@ -43,13 +43,13 @@
 					"name": "FilterCurrentDim"
 				},
 				{
-					"name": "LookupDim"
-				},
-				{
-					"name": "SplitRows"
+					"name": "ExistsForInsert"
 				},
 				{
 					"name": "AddSCD2Metadata"
+				},
+				{
+					"name": "ExistsForExpiry"
 				},
 				{
 					"name": "AddExpiryMetadata"
@@ -89,18 +89,19 @@
 				"LakeSource derive(SourceRowHash = sha2(256, CustomerName, Email, City)) ~> AddLakeHash",
 				"DimSource filter(IsCurrent == true()",
 				") ~> FilterCurrentDim",
-				"AddLakeHash, FilterCurrentDim lookup(LakeSource@CustomerID == DimSource@CustomerID,",
-				"     multiple: false,",
-				"     pickup: 'any',",
-				"     broadcast: 'auto')~> LookupDim",
-				"LookupDim split(isNull(RowHash) || SourceRowHash != RowHash,",
-				"     !isNull(RowHash) && SourceRowHash != RowHash,",
-				"     disjoint: false) ~> SplitRows@(NewOrChangedRows, ChangedRowsToExpire)",
-				"SplitRows@NewOrChangedRows derive(IsCurrent = 1,",
+				"AddLakeHash, FilterCurrentDim exists(LakeSource@CustomerID == DimSource@CustomerID",
+				"     && SourceRowHash == RowHash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> ExistsForInsert",
+				"ExistsForInsert derive(IsCurrent = true(),",
 				"          EffectiveStartDate = currentTimestamp(),",
 				"          EffectiveEndDate = toTimestamp('9999-12-31 00:00:00'),",
 				"          RowHash = SourceRowHash) ~> AddSCD2Metadata",
-				"SplitRows@ChangedRowsToExpire derive(IsCurrent = 0,",
+				"FilterCurrentDim, AddLakeHash exists(DimSource@CustomerID == LakeSource@CustomerID && RowHash != SourceRowHash",
+				",",
+				"     negate:false,",
+				"     broadcast: 'right')~> ExistsForExpiry",
+				"ExistsForExpiry derive(IsCurrent = false(),",
 				"          EffectiveEndDate = currentTimestamp()) ~> AddExpiryMetadata",
 				"AddExpiryMetadata alterRow(updateIf(true())) ~> SetAsUpdate",
 				"AddSCD2Metadata sink(allowSchemaDrift: true,",
@@ -114,15 +115,10 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          CustomerID = SplitRows@NewOrChangedRows@CustomerID,",
-				"          CustomerName = SplitRows@NewOrChangedRows@CustomerName,",
-				"          Email = SplitRows@NewOrChangedRows@Email,",
-				"          City = SplitRows@NewOrChangedRows@City,",
-				"          LastModifiedDate,",
-				"          CustomerID = SplitRows@NewOrChangedRows@CustomerID,",
-				"          CustomerName = SplitRows@NewOrChangedRows@CustomerName,",
-				"          Email = SplitRows@NewOrChangedRows@Email,",
-				"          City = SplitRows@NewOrChangedRows@City,",
+				"          CustomerID,",
+				"          CustomerName,",
+				"          Email,",
+				"          City,",
 				"          IsCurrent,",
 				"          EffectiveStartDate,",
 				"          EffectiveEndDate,",
@@ -140,21 +136,9 @@
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          CustomerID = SplitRows@ChangedRowsToExpire@CustomerID,",
-				"          CustomerName = SplitRows@ChangedRowsToExpire@CustomerName,",
-				"          Email = SplitRows@ChangedRowsToExpire@Email,",
-				"          City = SplitRows@ChangedRowsToExpire@City,",
-				"          LastModifiedDate,",
-				"          SourceRowHash,",
 				"          CustomerSK,",
-				"          CustomerID = SplitRows@ChangedRowsToExpire@CustomerID,",
-				"          CustomerName = SplitRows@ChangedRowsToExpire@CustomerName,",
-				"          Email = SplitRows@ChangedRowsToExpire@Email,",
-				"          City = SplitRows@ChangedRowsToExpire@City,",
 				"          IsCurrent,",
-				"          EffectiveStartDate,",
-				"          EffectiveEndDate,",
-				"          RowHash",
+				"          EffectiveEndDate",
 				"     )) ~> SinkExpiredRecords"
 			]
 		}
