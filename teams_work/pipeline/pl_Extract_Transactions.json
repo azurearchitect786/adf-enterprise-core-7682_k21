@@ -54,7 +54,10 @@
 				"outputs": [
 					{
 						"referenceName": "ds_Staging_Customer_Parquet",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"lake_name": "sadlsextng7682"
+						}
 					}
 				]
 			}
