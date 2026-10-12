@@ -1,0 +1,162 @@
+{
+	"name": "df_SCD2_Customer",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_Staging_Customer_Parquet",
+						"type": "DatasetReference"
+					},
+					"name": "LakeSource"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_AzureSQL_Parameterized",
+						"type": "DatasetReference"
+					},
+					"name": "DimSource"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_AzureSQL_Parameterized",
+						"type": "DatasetReference"
+					},
+					"name": "SinkNewRecords"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_AzureSQL_Parameterized",
+						"type": "DatasetReference"
+					},
+					"name": "SinkExpiredRecords"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AddLakeHash"
+				},
+				{
+					"name": "FilterCurrentDim"
+				},
+				{
+					"name": "LookupDim"
+				},
+				{
+					"name": "SplitRows"
+				},
+				{
+					"name": "AddSCD2Metadata"
+				},
+				{
+					"name": "AddExpiryMetadata"
+				},
+				{
+					"name": "SetAsUpdate"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerID as integer,",
+				"          CustomerName as string,",
+				"          Email as string,",
+				"          City as string,",
+				"          LastModifiedDate as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet',",
+				"     wildcardPaths:['customer_extract/*.parquet']) ~> LakeSource",
+				"source(output(",
+				"          CustomerSK as integer,",
+				"          CustomerID as integer,",
+				"          CustomerName as string,",
+				"          Email as string,",
+				"          City as string,",
+				"          IsCurrent as boolean,",
+				"          EffectiveStartDate as timestamp,",
+				"          EffectiveEndDate as timestamp,",
+				"          RowHash as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> DimSource",
+				"LakeSource derive(SourceRowHash = sha2(256, CustomerName, Email, City)) ~> AddLakeHash",
+				"DimSource filter(IsCurrent == true()",
+				") ~> FilterCurrentDim",
+				"AddLakeHash, FilterCurrentDim lookup(LakeSource@CustomerID == DimSource@CustomerID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> LookupDim",
+				"LookupDim split(isNull(RowHash) || SourceRowHash != RowHash,",
+				"     !isNull(RowHash) && SourceRowHash != RowHash,",
+				"     disjoint: false) ~> SplitRows@(NewOrChangedRows, ChangedRowsToExpire)",
+				"SplitRows@NewOrChangedRows derive(IsCurrent = 1,",
+				"          EffectiveStartDate = currentTimestamp(),",
+				"          EffectiveEndDate = toTimestamp('9999-12-31 00:00:00'),",
+				"          RowHash = SourceRowHash) ~> AddSCD2Metadata",
+				"SplitRows@ChangedRowsToExpire derive(IsCurrent = 0,",
+				"          EffectiveEndDate = currentTimestamp()) ~> AddExpiryMetadata",
+				"AddExpiryMetadata alterRow(updateIf(true())) ~> SetAsUpdate",
+				"AddSCD2Metadata sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID = SplitRows@NewOrChangedRows@CustomerID,",
+				"          CustomerName = SplitRows@NewOrChangedRows@CustomerName,",
+				"          Email = SplitRows@NewOrChangedRows@Email,",
+				"          City = SplitRows@NewOrChangedRows@City,",
+				"          LastModifiedDate,",
+				"          CustomerID = SplitRows@NewOrChangedRows@CustomerID,",
+				"          CustomerName = SplitRows@NewOrChangedRows@CustomerName,",
+				"          Email = SplitRows@NewOrChangedRows@Email,",
+				"          City = SplitRows@NewOrChangedRows@City,",
+				"          IsCurrent,",
+				"          EffectiveStartDate,",
+				"          EffectiveEndDate,",
+				"          RowHash = SourceRowHash",
+				"     )) ~> SinkNewRecords",
+				"SetAsUpdate sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['CustomerSK'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          CustomerID = SplitRows@ChangedRowsToExpire@CustomerID,",
+				"          CustomerName = SplitRows@ChangedRowsToExpire@CustomerName,",
+				"          Email = SplitRows@ChangedRowsToExpire@Email,",
+				"          City = SplitRows@ChangedRowsToExpire@City,",
+				"          LastModifiedDate,",
+				"          SourceRowHash,",
+				"          CustomerSK,",
+				"          CustomerID = SplitRows@ChangedRowsToExpire@CustomerID,",
+				"          CustomerName = SplitRows@ChangedRowsToExpire@CustomerName,",
+				"          Email = SplitRows@ChangedRowsToExpire@Email,",
+				"          City = SplitRows@ChangedRowsToExpire@City,",
+				"          IsCurrent,",
+				"          EffectiveStartDate,",
+				"          EffectiveEndDate,",
+				"          RowHash",
+				"     )) ~> SinkExpiredRecords"
+			]
+		}
+	}
+}
