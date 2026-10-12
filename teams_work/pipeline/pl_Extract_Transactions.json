@@ -5,6 +5,8 @@
 			{
 				"name": "Copy_SQL_to_Lake",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GetNewMaxWatermark",
@@ -75,7 +77,16 @@
 			{
 				"name": "GetOldWatermark",
 				"type": "Lookup",
-				"dependsOn": [],
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "CleanUpStaging",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -106,6 +117,8 @@
 			{
 				"name": "GetNewMaxWatermark",
 				"type": "Lookup",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GetOldWatermark",
@@ -144,6 +157,8 @@
 			{
 				"name": "UpdateWatermarkTable",
 				"type": "SqlServerStoredProcedure",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Copy_SQL_to_Lake",
@@ -185,6 +200,8 @@
 			{
 				"name": "Customer_SCD_Type2",
 				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "UpdateWatermarkTable",
@@ -234,6 +251,35 @@
 						"computeType": "General"
 					},
 					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "CleanUpStaging",
+				"type": "Delete",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_Staging_Customer_Parquet",
+						"type": "DatasetReference",
+						"parameters": {
+							"lake_name": "sadlsextng7682"
+						}
+					},
+					"enableLogging": true,
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"wildcardFileName": "staging/customer_extract/*",
+						"enablePartitionDiscovery": false
+					}
 				}
 			}
 		],
