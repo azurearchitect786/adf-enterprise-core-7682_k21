@@ -1,6 +1,5 @@
 {
 	"name": "LS_ADLS_Parameterized",
-	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
 			"adls_name": {
@@ -12,5 +11,6 @@
 		"typeProperties": {
 			"url": "@{concat('https://',linkedService().adls_name,'.dfs.core.windows.net/')}"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/linkedservices"
 }
