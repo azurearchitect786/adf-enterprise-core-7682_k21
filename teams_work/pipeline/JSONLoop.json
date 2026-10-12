@@ -18,8 +18,47 @@
 					"method": "GET",
 					"url": "https://jsonplaceholder.typicode.com/posts"
 				}
+			},
+			{
+				"name": "Loop",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "ReadJSON",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('ReadJSON').output.Response",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Append variable1",
+							"type": "AppendVariable",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "All_Records",
+								"value": {
+									"value": "@item().id",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
 			}
 		],
+		"variables": {
+			"All_Records": {
+				"type": "Array"
+			}
+		},
 		"annotations": []
 	}
 }
