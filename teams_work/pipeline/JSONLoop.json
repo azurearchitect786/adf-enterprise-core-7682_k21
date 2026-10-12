@@ -56,7 +56,7 @@
 		],
 		"variables": {
 			"All_Records": {
-				"type": "Array"
+				"type": "String"
 			}
 		},
 		"annotations": []
