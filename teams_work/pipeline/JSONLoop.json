@@ -38,14 +38,18 @@
 					},
 					"activities": [
 						{
-							"name": "Append variable1",
-							"type": "AppendVariable",
+							"name": "Set variable",
+							"type": "SetVariable",
 							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
 								"variableName": "All_Records",
 								"value": {
-									"value": "@item().id",
+									"value": "@item()",
 									"type": "Expression"
 								}
 							}
