@@ -5,8 +5,6 @@
 			{
 				"name": "Copy_SQL_to_Lake",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GetNewMaxWatermark",
@@ -77,8 +75,6 @@
 			{
 				"name": "GetOldWatermark",
 				"type": "Lookup",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "CleanUpStaging",
@@ -117,8 +113,6 @@
 			{
 				"name": "GetNewMaxWatermark",
 				"type": "Lookup",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "GetOldWatermark",
@@ -157,8 +151,6 @@
 			{
 				"name": "UpdateWatermarkTable",
 				"type": "SqlServerStoredProcedure",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Copy_SQL_to_Lake",
@@ -200,8 +192,6 @@
 			{
 				"name": "Customer_SCD_Type2",
 				"type": "ExecuteDataFlow",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "UpdateWatermarkTable",
