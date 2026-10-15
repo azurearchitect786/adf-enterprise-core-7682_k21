@@ -36,17 +36,34 @@
 				"inputs": [
 					{
 						"referenceName": "textfile",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"lakename": {
+								"value": "@pipeline().parameters.lakename",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [
 					{
 						"referenceName": "Text",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"lakename": {
+								"value": "@pipeline().parameters.lakename",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
 		],
+		"parameters": {
+			"lakename": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
