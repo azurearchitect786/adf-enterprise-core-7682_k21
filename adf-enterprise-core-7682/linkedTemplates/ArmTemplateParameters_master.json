@@ -5,6 +5,9 @@
 		"factoryName": {
 			"value": "adf-enterprise-core-7682"
 		},
+		"K21Databricks_accessToken": {
+			"value": ""
+		},
 		"LS_CICD_accountKey": {
 			"value": ""
 		},
@@ -13,6 +16,12 @@
 		},
 		"LS_Cosmos_K21_connectionString": {
 			"value": ""
+		},
+		"Fabric_WH_properties_typeProperties_endpoint": {
+			"value": "yc5m6ynvgguu7h2sjnyy44f5ty-sb6reoxrusvejjbdrj4g4nkr6u.datawarehouse.fabric.microsoft.com"
+		},
+		"K21Databricks_properties_typeProperties_existingClusterId": {
+			"value": "1010-160645-00yo4of0"
 		},
 		"LS_ADLS_Gen2_Raw_properties_typeProperties_url": {
 			"value": "https://sadlsextng7682.dfs.core.windows.net/"
@@ -65,6 +74,9 @@
 		"LS_CICDel_properties_typeProperties_url": {
 			"value": "https://sadlsextng7682.dfs.core.windows.net/"
 		},
+		"LS_Class_Demo_Lake_properties_typeProperties_url": {
+			"value": "@{concat('https://',linkedService().lakename,'.dfs.core.windows.net/')}"
+		},
 		"LS_CosmosDb_Parameterized_properties_typeProperties_accountEndpoint": {
 			"value": "@{concat('https://',linkedService().CosmosAccountName,'.documents.azure.com:443/')}"
 		},
@@ -76,6 +88,12 @@
 		},
 		"LS_Cosmos_Dynamic_properties_typeProperties_database": {
 			"value": "support_db"
+		},
+		"SynapseWarehouse_properties_typeProperties_server": {
+			"value": "sql-server-etnd-7682.database.windows.net"
+		},
+		"SynapseWarehouse_properties_typeProperties_database": {
+			"value": "warehouse2536236"
 		},
 		"containerUri": {
 			"value": ""

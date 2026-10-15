@@ -7,6 +7,10 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-enterprise-core-7682"
 		},
+		"K21Databricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'K21Databricks'"
+		},
 		"LS_CICD_accountKey": {
 			"type": "secureString",
 			"metadata": "Secure string for 'accountKey' of 'LS_CICD'"
@@ -18,6 +22,14 @@
 		"LS_Cosmos_K21_connectionString": {
 			"type": "secureString",
 			"metadata": "Secure string for 'connectionString' of 'LS_Cosmos_K21'"
+		},
+		"Fabric_WH_properties_typeProperties_endpoint": {
+			"type": "string",
+			"defaultValue": "yc5m6ynvgguu7h2sjnyy44f5ty-sb6reoxrusvejjbdrj4g4nkr6u.datawarehouse.fabric.microsoft.com"
+		},
+		"K21Databricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1010-160645-00yo4of0"
 		},
 		"LS_ADLS_Gen2_Raw_properties_typeProperties_url": {
 			"type": "string",
@@ -71,6 +83,10 @@
 			"type": "string",
 			"defaultValue": "https://sadlsextng7682.dfs.core.windows.net/"
 		},
+		"LS_Class_Demo_Lake_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{concat('https://',linkedService().lakename,'.dfs.core.windows.net/')}"
+		},
 		"LS_CosmosDb_Parameterized_properties_typeProperties_accountEndpoint": {
 			"type": "string",
 			"defaultValue": "@{concat('https://',linkedService().CosmosAccountName,'.documents.azure.com:443/')}"
@@ -86,12 +102,144 @@
 		"LS_Cosmos_Dynamic_properties_typeProperties_database": {
 			"type": "string",
 			"defaultValue": "support_db"
+		},
+		"SynapseWarehouse_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "sql-server-etnd-7682.database.windows.net"
+		},
+		"SynapseWarehouse_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "warehouse2536236"
 		}
 	},
 	"variables": {
 		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
 	},
 	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/JSONLoop')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "ReadJSON",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://jsonplaceholder.typicode.com/posts"
+						}
+					},
+					{
+						"name": "Loop",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "ReadJSON",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@json(activity('ReadJSON').output.Response)\n",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Set variable",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "All_Records",
+										"value": {
+											"value": "@item().id",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"All_Records": {
+						"type": "String"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/FBLKH')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Lakehouse",
+				"typeProperties": {
+					"workspaceId": "3a127d90-a4f1-44aa-a423-8a786e3551f5",
+					"artifactId": "e8701077-20d2-456a-b9f2-fd34832f2ef2",
+					"authenticationType": "SystemAssignedManagedIdentity"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Fabric_WH')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Warehouse",
+				"typeProperties": {
+					"endpoint": "[parameters('Fabric_WH_properties_typeProperties_endpoint')]",
+					"artifactId": "6788d09f-0ac3-42dd-8fa2-b896d1ef0ff4",
+					"workspaceId": "3a127d90-a4f1-44aa-a423-8a786e3551f5",
+					"authenticationType": "SystemAssignedManagedIdentity"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/K21Databricks')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureDatabricks",
+				"typeProperties": {
+					"domain": "https://adb-7405607124153042.2.azuredatabricks.net",
+					"accessToken": {
+						"type": "SecureString",
+						"value": "[parameters('K21Databricks_accessToken')]"
+					},
+					"existingClusterId": "[parameters('K21Databricks_properties_typeProperties_existingClusterId')]"
+				}
+			},
+			"dependsOn": []
+		},
 		{
 			"name": "[concat(parameters('factoryName'), '/LS_ADLS_Gen2_Raw')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
@@ -247,6 +395,24 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/LS_Class_Demo_Lake')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"lakename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LS_Class_Demo_Lake_properties_typeProperties_url')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/LS_CosmosDb_Parameterized')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -298,6 +464,23 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/SynapseWarehouse')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('SynapseWarehouse_properties_typeProperties_server')]",
+					"database": "[parameters('SynapseWarehouse_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SystemAssignedManagedIdentity"
+				}
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/shirvm')]",
 			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
 			"apiVersion": "2018-06-01",
@@ -329,288 +512,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_Sink')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Class_MetaDataDrivenCopyTask_706_DestinationDS')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_CosmosDb_Parameterized",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"CosmosDBName": {
-							"value": "@dataset().cw_ls_CosmosDBName",
-							"type": "Expression"
-						},
-						"CosmosAccountName": {
-							"value": "@dataset().cw_ls_CosmosAccountName",
-							"type": "Expression"
-						}
-					}
-				},
-				"parameters": {
-					"cw_collectionName": {
-						"type": "String"
-					},
-					"cw_ls_CosmosDBName": {
-						"type": "String"
-					},
-					"cw_ls_CosmosAccountName": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "Class_MetaDataDrivenCopyTask_706_20261006"
-				},
-				"annotations": [],
-				"type": "CosmosDbSqlApiCollection",
-				"schema": {},
-				"typeProperties": {
-					"collectionName": {
-						"value": "@dataset().cw_collectionName",
-						"type": "Expression"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_CosmosDb_Parameterized')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Class_MetaDataDrivenCopyTask_706_SourceDS')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_AzureSQL_Parameterized",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"DBName": {
-							"value": "@dataset().cw_ls_DBName",
-							"type": "Expression"
-						},
-						"ServerName": {
-							"value": "@dataset().cw_ls_ServerName",
-							"type": "Expression"
-						}
-					}
-				},
-				"parameters": {
-					"cw_schema": {
-						"type": "String"
-					},
-					"cw_table": {
-						"type": "String"
-					},
-					"cw_ls_DBName": {
-						"type": "String"
-					},
-					"cw_ls_ServerName": {
-						"type": "String"
-					}
-				},
-				"folder": {
-					"name": "Class_MetaDataDrivenCopyTask_706_20261006"
-				},
-				"annotations": [],
-				"type": "AzureSqlTable",
-				"schema": [],
-				"typeProperties": {
-					"schema": {
-						"value": "@dataset().cw_schema",
-						"type": "Expression"
-					},
-					"table": {
-						"value": "@dataset().cw_table",
-						"type": "Expression"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_Parameterized')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Bronze_Parameterized')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_ADLS_Parameterized",
-					"type": "LinkedServiceReference",
-					"parameters": {
-						"adls_name": {
-							"value": "@dataset().ADLSName",
-							"type": "Expression"
-						}
-					}
-				},
-				"parameters": {
-					"FileName": {
-						"type": "string"
-					},
-					"ADLSName": {
-						"type": "string"
-					}
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": {
-							"value": "@dataset().FileName",
-							"type": "Expression"
-						},
-						"folderPath": "sql_ingest",
-						"fileSystem": "bronze"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_Parameterized')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_ADLS_CSV_Source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_ADLS_Gen2_Raw",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "store_sales.csv",
-						"fileSystem": "raw-zone"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "StoreID",
-						"type": "String"
-					},
-					{
-						"name": "SaleDate",
-						"type": "String"
-					},
-					{
-						"name": "ProductID",
-						"type": "String"
-					},
-					{
-						"name": "Amount",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_Gen2_Raw')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Class3_FolderSource')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_ADLS_Gen2_Raw",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"folderPath": "class3-input",
-						"fileSystem": "raw-zone"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "TransactionID",
-						"type": "String"
-					},
-					{
-						"name": "CustomerID",
-						"type": "String"
-					},
-					{
-						"name": "ProductCategory",
-						"type": "String"
-					},
-					{
-						"name": "Amount",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_Gen2_Raw')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/DS_ADLS_Customers_Full_Source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "LS_ADLS_Gen2_Raw",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "DelimitedText",
-				"typeProperties": {
-					"location": {
-						"type": "AzureBlobFSLocation",
-						"fileName": "target_customers_full.csv",
-						"fileSystem": "raw-zone"
-					},
-					"columnDelimiter": ",",
-					"escapeChar": "\\",
-					"firstRowAsHeader": true,
-					"quoteChar": "\""
-				},
-				"schema": [
-					{
-						"name": "CustomerID",
-						"type": "String"
-					},
-					{
-						"name": "CustomerName",
-						"type": "String"
-					},
-					{
-						"name": "Email",
-						"type": "String"
-					},
-					{
-						"name": "Region",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_Gen2_Raw')]"
 			]
 		}
 	]
