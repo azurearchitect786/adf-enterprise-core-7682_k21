@@ -1,0 +1,30 @@
+{
+	"name": "DS_Warehouse",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Fabric_WH",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "WarehouseTable",
+		"schema": [
+			{
+				"name": "MedallionID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "MedallionBKey",
+				"type": "varchar"
+			},
+			{
+				"name": "MedallionCode",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "Medallion"
+		}
+	}
+}

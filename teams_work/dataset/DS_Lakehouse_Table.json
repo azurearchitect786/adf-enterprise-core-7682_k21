@@ -1,0 +1,37 @@
+{
+	"name": "DS_Lakehouse_Table",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "FBLKH",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "LakehouseTable",
+		"schema": [
+			{
+				"name": "Category",
+				"type": "string"
+			},
+			{
+				"name": "SalesChannel",
+				"type": "string"
+			},
+			{
+				"name": "TotalRevenue",
+				"type": "double"
+			},
+			{
+				"name": "TotalUnitsSold",
+				"type": "long"
+			},
+			{
+				"name": "TotalOrders",
+				"type": "long"
+			}
+		],
+		"typeProperties": {
+			"schema": "Gold",
+			"table": "channel_product_performance"
+		}
+	}
+}
