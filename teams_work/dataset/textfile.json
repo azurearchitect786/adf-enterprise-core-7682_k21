@@ -1,0 +1,18 @@
+{
+	"name": "textfile",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Parameterized",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "06c3df27-7535-4a75-b6b5-b1c56ae9ba5e.txt",
+				"fileSystem": "bronze"
+			}
+		}
+	}
+}

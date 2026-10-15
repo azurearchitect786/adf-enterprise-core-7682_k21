@@ -1,0 +1,18 @@
+{
+	"name": "Text",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ADLS_Parameterized",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": "confidentialinfo",
+				"fileSystem": "silver"
+			}
+		}
+	}
+}
