@@ -339,23 +339,6 @@
 						"enablePartitionDiscovery": false
 					}
 				}
-			},
-			{
-				"name": "Fail_Pipeline_On_Audit_Anomaly",
-				"type": "Fail",
-				"dependsOn": [
-					{
-						"activity": "Delete_Temporary_Staging_Files",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"message": "Enterprise Integrity Error: Metadata batch verification threshold broken.",
-					"errorCode": "ERR_METADATA_099"
-				}
 			}
 		],
 		"variables": {
