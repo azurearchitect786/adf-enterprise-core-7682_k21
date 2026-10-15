@@ -9,7 +9,7 @@
 		"annotations": [],
 		"type": "AzureBlobFS",
 		"typeProperties": {
-			"url": "https://enterpriselake235256.dfs.core.windows.net/"
+			"url": "@{concat('https://',linkedService().lakename,'.dfs.core.windows.net/')}"
 		}
 	}
 }
