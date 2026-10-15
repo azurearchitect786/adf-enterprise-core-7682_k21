@@ -1,0 +1,13 @@
+{
+	"name": "Fabric_WH",
+	"properties": {
+		"annotations": [],
+		"type": "Warehouse",
+		"typeProperties": {
+			"endpoint": "yc5m6ynvgguu7h2sjnyy44f5ty-sb6reoxrusvejjbdrj4g4nkr6u.datawarehouse.fabric.microsoft.com",
+			"artifactId": "6788d09f-0ac3-42dd-8fa2-b896d1ef0ff4",
+			"workspaceId": "3a127d90-a4f1-44aa-a423-8a786e3551f5",
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}
