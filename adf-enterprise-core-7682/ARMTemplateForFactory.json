@@ -7326,20 +7326,35 @@
 							{
 								"referenceName": "textfile",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"lakename": {
+										"value": "@pipeline().parameters.lakename",
+										"type": "Expression"
+									}
+								}
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "Text",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"lakename": {
+										"value": "@pipeline().parameters.lakename",
+										"type": "Expression"
+									}
+								}
 							}
 						]
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"lakename": {
+						"type": "string"
+					}
 				},
 				"annotations": []
 			},
@@ -7355,7 +7370,18 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "LS_ADLS_Parameterized",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"adls_name": {
+							"value": "@dataset().lakename",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"lakename": {
+						"type": "string"
+					}
 				},
 				"annotations": [],
 				"type": "Binary",
@@ -7378,7 +7404,18 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "LS_ADLS_Parameterized",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"adls_name": {
+							"value": "@dataset().lakename",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"lakename": {
+						"type": "string"
+					}
 				},
 				"annotations": [],
 				"type": "Binary",

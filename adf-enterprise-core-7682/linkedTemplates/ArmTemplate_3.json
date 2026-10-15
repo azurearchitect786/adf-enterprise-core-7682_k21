@@ -2720,20 +2720,35 @@
 							{
 								"referenceName": "textfile",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"lakename": {
+										"value": "@pipeline().parameters.lakename",
+										"type": "Expression"
+									}
+								}
 							}
 						],
 						"outputs": [
 							{
 								"referenceName": "Text",
 								"type": "DatasetReference",
-								"parameters": {}
+								"parameters": {
+									"lakename": {
+										"value": "@pipeline().parameters.lakename",
+										"type": "Expression"
+									}
+								}
 							}
 						]
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"lakename": {
+						"type": "string"
+					}
 				},
 				"annotations": []
 			},
