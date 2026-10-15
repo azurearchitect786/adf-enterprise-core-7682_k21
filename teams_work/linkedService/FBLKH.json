@@ -1,0 +1,12 @@
+{
+	"name": "FBLKH",
+	"properties": {
+		"annotations": [],
+		"type": "Lakehouse",
+		"typeProperties": {
+			"workspaceId": "3a127d90-a4f1-44aa-a423-8a786e3551f5",
+			"artifactId": "e8701077-20d2-456a-b9f2-fd34832f2ef2",
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}
