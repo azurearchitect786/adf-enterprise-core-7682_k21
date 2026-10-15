@@ -1,0 +1,14 @@
+{
+	"name": "SynapseWarehouse",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"server": "sql-server-etnd-7682.database.windows.net",
+			"database": "warehouse2536236",
+			"encrypt": "mandatory",
+			"trustServerCertificate": true,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}
